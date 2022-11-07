@@ -9,6 +9,7 @@ import requests
 from fake_useragent import UserAgent
 import json
 
+
 def parser_for_groups():
     agent = UserAgent()
     headers = {
@@ -19,10 +20,10 @@ def parser_for_groups():
     url = "https://edu.donstu.ru/api/raspGrouplist?year=2022-2023"
     req = requests.get(url,headers=headers)
     src = req.text
-    with open("Bot/dict_1.json","w") as file:
-            json.dump(src,file,indent=4,ensure_ascii=True)    
+    with open("/etc/BOT/dict_1.json","w") as file:
+        json.dump(src,file,indent=4,ensure_ascii=True)    
 
-    with open("Bot/dict_1.json", "r") as read_file:
+    with open("/etc/BOT/dict_1.json", "r") as read_file:
         data = json.load(read_file)
     data:dict = json.loads(data)
     data = data.get("data")
@@ -50,10 +51,10 @@ def parser(Mkis21:int,date):
         url = f'https://edu.donstu.ru/api/Rasp?idGroup={Mkis21}&sdate={info}'
         req = requests.get(url,headers=headers)
         src = req.text
-    with open("Bot/dict.json","w") as file:
-            json.dump(src,file,indent=4,ensure_ascii=False)    
+    with open("/etc/BOT/dict.json","w") as file:
+            json.dump(src,file,indent=4,ensure_ascii=True)    
 
-    with open("Bot/dict.json", "r") as read_file:
+    with open("/etc/BOT/dict.json", "r") as read_file:
         data = json.load(read_file)
     data = json.loads(data)
     all_days = [[],[],[],[],[],[]]
@@ -90,7 +91,6 @@ group = []
 for i in parser_for_groups():
     group.append(i.get("name"))
 
-
 @dp.message_handler(commands=["start","now","change","help","tomorrow",'date'])
 async def cmd_start(message: types.Message):
 
@@ -114,9 +114,6 @@ async def cmd_start(message: types.Message):
     for i in id_user:
         if message.from_user.id == i[0]:
             id_info:int = i[2]
-    
-    
-
 
     if message.text.lower() == "/start":    
         if message.from_user.id not in id_main:
@@ -124,18 +121,17 @@ async def cmd_start(message: types.Message):
         else:
             await message.answer(f"Вы уже вводили свою группу,\nЧтобы её изменить напишите /change группа\nЕсли вы хотите узнать команды бота введите /help")
     
-
     if "/date" in message.text.lower():
         data:str = message.text.lower()
         data = data.replace("/date","")
         data = data.replace(" ","")
         info = []
+        message_send = []
+        send = ""
         all_days = parser(id_info,(datetime.datetime(2022,int(data[3:]),int(data[:2]))))
         time = datetime.datetime(2022,int(data[3:]),int(data[:2]))
-        message_send = []
-        send = ''
         if time.weekday() == 6:
-            await message.answer("В этот день воскресенье, пар нет")
+            await message.answer("В этот день пар нет, воскресенье же :)")
         else:
             if all_days[time.weekday()] == []:
                 await message.answer("В этот день нет пар, можно отдохнуть")
@@ -152,8 +148,7 @@ async def cmd_start(message: types.Message):
         for i in message_send:
             send+=i
             send+="\n\n"
-        await message.answer(send)  
-
+        await message.answer(send) 
 
     if message.text.lower() == "/now":
         info = []
@@ -179,18 +174,17 @@ async def cmd_start(message: types.Message):
         for i in message_send:
             send+=i
             send+="\n\n"
-        await message.answer(send)  
-
-
+        await message.answer(send) 
+    
     if message.text.lower() == "/tomorrow":
         info = []
         all_days = parser(id_info,datetime.datetime.now())
+        message_send = []
+        send = ''
         time = datetime.datetime.now()
         time = time + datetime.timedelta(days=1)
-        message_send = []
-        send = ""
-        if time.weekday() == 6:
-            await message.answer("В этот день воскресенье, пар нет")
+        if time.weekday() == 6 :
+            await message.answer("Сегодня воскресенье, пар нет")
         else:
             if all_days[time.weekday()] == []:
                 await message.answer("В этот день нет пар, надеюсь вы хорошо отдохнули :)")    
@@ -207,8 +201,7 @@ async def cmd_start(message: types.Message):
         for i in message_send:
             send+=i
             send+="\n\n"
-        await message.answer(send)    
-
+        await message.answer(send)  
 
 
     if   "/change" in message.text.lower():
@@ -221,10 +214,10 @@ async def cmd_start(message: types.Message):
                 if i[0]==message.from_user.id:
                     if i[1] == group_change:
                         await message.answer("Данная группа у вас уже выбрана!")
-                    else:    
+                    else:   
                         for i in parser_for_groups():
                             if i.get("name") == group_change:
-                                info_2 = i.get("id")
+                                info_2 = i.get("id") 
                         with engine.cursor() as cursor:                                   
                             cursor.execute(f"UPDATE `rasp_db`.`users` SET `groupp` = '{group_change}' WHERE (`id` = '{message.from_user.id}');")
                             cursor.execute(f"UPDATE `rasp_db`.`users` SET `number_1` = '{info_2}' WHERE (`id` = '{message.from_user.id}');")
@@ -240,7 +233,6 @@ async def Group(message: types.Message):
     info = message.text.upper()
     info = info.replace(" ","")
     info = info.replace("-","")
-
     if info in group:
         for i in parser_for_groups():
             if i.get("name") == info:
